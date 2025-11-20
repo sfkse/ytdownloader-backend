@@ -68,6 +68,16 @@ def download_video(url, output_path=None, return_file_path=False):
             "outtmpl": os.path.join(downloads_path, "%(title)s.%(ext)s"),
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
+            "noplaylist": True,
+            # Fix YouTube bot detection by using a different player client
+            "extractor_args": {
+                "youtube": {
+                    "player_client": [
+                        "android",
+                        "web",
+                    ],  # Try android first, fallback to web
+                }
+            },
         }
 
         # Use ffmpeg for post-processing to ensure highest quality and QuickTime compatibility
