@@ -64,7 +64,7 @@ def download_video(url, output_path=None, return_file_path=False):
         # Use temp file pattern that yt-dlp will fill in
         # Prioritize quality over format - download best video+audio, then convert to MP4
         ydl_opts = {
-            "format": "bestvideo+bestaudio/best[protocol!=m3u8]/best[protocol!=m3u8]/best",
+            "format": "bestvideo[ext=mp4][height>=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4][height>=720]+bestaudio[ext=m4a]/bestvideo[height>=1080]+bestaudio/bestvideo[height>=720]+bestaudio/bestvideo+bestaudio/best[height>=1080]/best[height>=720]/best[protocol!=m3u8]/best",
             "outtmpl": os.path.join(downloads_path, "%(title)s.%(ext)s"),
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
@@ -87,9 +87,12 @@ def download_video(url, output_path=None, return_file_path=False):
                 "Accept-Language": "en-us,en;q=0.5",
                 "Accept-Encoding": "gzip, deflate",
             },
+            # Add verbose logging to see format selection
+            "verbose": True,  # This will show detailed format info
         }
 
         # Use ffmpeg for post-processing to ensure highest quality and QuickTime compatibility
+        print(f"Downloading with format selector: {ydl_opts.get('format', 'default')}")
         if check_ffmpeg():
             ydl_opts["postprocessors"] = [
                 {
