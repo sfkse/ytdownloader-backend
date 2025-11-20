@@ -72,26 +72,26 @@ def download_video(url, output_path=None, return_file_path=False):
             "progress_hooks": [progress_hook],
             "noplaylist": True,
             # Try to bypass bot detection
-            "extractor_args": {
-                "youtube": {
-                    "player_client": ["tv_embedded", "ios", "android", "web"],
-                    "skip": [
-                        "dash",
-                        "hls",
-                    ],  # Skip adaptive formats that might trigger detection
-                }
-            },
-            # Add more realistic headers
+            # "extractor_args": {
+            #     "youtube": {
+            #         "player_client": ["tv_embedded", "ios", "android", "web"],
+            #         "skip": [
+            #             "dash",
+            #             "hls",
+            #         ],  # Skip adaptive formats that might trigger detection
+            #     }
+            # },
+            # Let yt-dlp use default client selection (often more reliable)
             "http_headers": {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate, br",
                 "Referer": "https://www.youtube.com/",
             },
-            # Retry on errors
-            "retries": 3,
-            "fragment_retries": 3,
+            # Retry logic
+            "retries": 5,
+            "fragment_retries": 5,
+            "sleep_interval": 1,
         }
 
         # Use ffmpeg for post-processing to ensure highest quality and QuickTime compatibility
