@@ -60,24 +60,21 @@ def download_video(url, output_path=None, return_file_path=False):
             if d["status"] == "finished":
                 actual_downloaded_file = d.get("filename")
 
-        # Configure yt-dlp options
+            # Configure yt-dlp options
+
         # Use temp file pattern that yt-dlp will fill in
         # Prioritize quality over format - download best video+audio, then convert to MP4
         ydl_opts = {
-            "format": "bestvideo[ext=mp4][height>=1080]+bestaudio[ext=m4a]/bestvideo[ext=mp4][height>=720]+bestaudio[ext=m4a]/bestvideo[height>=1080]+bestaudio/bestvideo[height>=720]+bestaudio/bestvideo+bestaudio/best[height>=1080]/best[height>=720]/best[protocol!=m3u8]/best",
+            # Quality-first format selector - don't restrict by extension
+            "format": "bestvideo[height>=1080]+bestaudio/bestvideo[height>=720]+bestaudio/bestvideo+bestaudio/best[height>=1080]/best[height>=720]/best[protocol!=m3u8]/best",
             "outtmpl": os.path.join(downloads_path, "%(title)s.%(ext)s"),
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
             "noplaylist": True,
-            # Fix YouTube bot detection - try multiple strategies
+            # Fix YouTube bot detection - use TV client first (most reliable)
             "extractor_args": {
                 "youtube": {
-                    "player_client": [
-                        "ios",
-                        "android_embedded",  # Android embedded player
-                        "android",
-                        "web",
-                    ],
+                    "player_client": ["tv_embedded", "ios", "android", "web"],
                 }
             },
             # Add headers to appear more legitimate
@@ -85,10 +82,10 @@ def download_video(url, output_path=None, return_file_path=False):
                 "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "en-us,en;q=0.5",
-                "Accept-Encoding": "gzip, deflate",
             },
-            # Add verbose logging to see format selection
-            "verbose": True,  # This will show detailed format info
+            # Retry on errors
+            "retries": 3,
+            "fragment_retries": 3,
         }
 
         # Use ffmpeg for post-processing to ensure highest quality and QuickTime compatibility
