@@ -19,6 +19,9 @@ def download_video(url, output_path=None, return_file_path=False):
     """
     Download a YouTube video
 
+    Optimized for local use - works best when run on your own machine!
+    Your home IP is trusted by YouTube, so you get high quality downloads.
+
     Args:
         url: YouTube video URL
         output_path: Output directory (default: Downloads folder for CLI, temp for API)
@@ -60,42 +63,21 @@ def download_video(url, output_path=None, return_file_path=False):
             if d["status"] == "finished":
                 actual_downloaded_file = d.get("filename")
 
-            # Configure yt-dlp options
-
-        # Use temp file pattern that yt-dlp will fill in
-        # Prioritize quality over format - download best video+audio, then convert to MP4
+        # Optimized for local use - prioritize high quality
+        # Localhost works great, so we can use best quality clients
         ydl_opts = {
-            # Quality-first format selector - don't restrict by extension
+            # Quality-first format selector - prioritize 1080p, then 720p, then best available
             "format": "bestvideo[height>=1080]+bestaudio/bestvideo[height>=720]+bestaudio/bestvideo+bestaudio/best[height>=1080]/best[height>=720]/best[protocol!=m3u8]/best",
             "outtmpl": os.path.join(downloads_path, "%(title)s.%(ext)s"),
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
             "noplaylist": True,
-            # Try to bypass bot detection
-            # "extractor_args": {
-            #     "youtube": {
-            #         "player_client": ["tv_embedded", "ios", "android", "web"],
-            #         "skip": [
-            #             "dash",
-            #             "hls",
-            #         ],  # Skip adaptive formats that might trigger detection
-            #     }
-            # },
-            # Let yt-dlp use default client selection (often more reliable)
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Referer": "https://www.youtube.com/",
-            },
-            # Retry logic
-            "retries": 5,
-            "fragment_retries": 5,
-            "sleep_interval": 1,
+            # Use default client selection - works well locally
+            "retries": 3,
+            "fragment_retries": 3,
         }
 
-        # Use ffmpeg for post-processing to ensure highest quality and QuickTime compatibility
-        print(f"Downloading with format selector: {ydl_opts.get('format', 'default')}")
+        # Use ffmpeg for post-processing to ensure highest quality and MP4 compatibility
         if check_ffmpeg():
             ydl_opts["postprocessors"] = [
                 {
@@ -103,17 +85,15 @@ def download_video(url, output_path=None, return_file_path=False):
                     "preferedformat": "mp4",
                 }
             ]
-            print(
-                "Note: Using ffmpeg for post-processing to ensure highest quality and QuickTime compatibility"
-            )
+            print("✓ Using ffmpeg for highest quality and MP4 compatibility")
         else:
             # Fallback: try to get MP4 directly if ffmpeg is not available
             ydl_opts["format"] = (
                 "best[ext=mp4][protocol!=m3u8]/best[protocol!=m3u8]/best[ext=mp4]/best"
             )
-            print(
-                "Warning: ffmpeg not available. Video quality may be limited to available MP4 formats."
-            )
+            print("⚠ Warning: ffmpeg not available. Install for best quality:")
+            print("   macOS: brew install ffmpeg")
+            print("   Ubuntu/Debian: sudo apt-get install ffmpeg")
 
         # Download the video
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -163,15 +143,6 @@ def download_video(url, output_path=None, return_file_path=False):
             )
 
         print(f"\n✓ Download complete! Video saved to: {downloaded_file_path}")
-
-        if not check_ffmpeg():
-            print(
-                "\n⚠ Note: ffmpeg is not installed. If the video doesn't play in QuickTime,"
-            )
-            print("   install ffmpeg with: brew install ffmpeg")
-            print(
-                "   This will ensure proper MP4 remuxing for QuickTime compatibility."
-            )
 
         if return_file_path:
             return (True, downloaded_file_path)

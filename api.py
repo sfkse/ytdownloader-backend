@@ -15,10 +15,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# CORS configuration - allow production frontend domain
+# CORS configuration - allow localhost by default
 CORS_ORIGINS = os.getenv(
     "CORS_ORIGINS",
-    "https://ytdownload.help,http://localhost:3000,http://127.0.0.1:3000",
+    "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001",
 ).split(",")
 CORS(app, origins=CORS_ORIGINS)  # Enable CORS for frontend requests
 
@@ -84,8 +84,6 @@ def download():
         )
 
         # Schedule file cleanup after response is sent
-        # Note: In production, you might want to use a background task queue
-        # For now, we'll clean up after a delay
         def cleanup_file(file_path):
             import time
 
@@ -139,7 +137,9 @@ def log_request_info():
 
 
 if __name__ == "__main__":
-    # Production settings
+    # Local development settings
     port = int(os.getenv("PORT", 8080))
-    debug = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
+    print(f"🚀 Starting YouTube Downloader API on http://localhost:{port}")
+    print("🛑 Press Ctrl+C to stop")
+    app.run(host="127.0.0.1", port=port, debug=debug)

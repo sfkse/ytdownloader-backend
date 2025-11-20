@@ -1,35 +1,24 @@
 #!/bin/bash
+# Alternative startup script (same as start.sh)
 
-# Navigate to the project directory
 cd "$(dirname "$0")"
 
-# Activate virtual environment
 if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
-    source venv/bin/activate
-    echo "Installing dependencies..."
-    pip install -r requirements.txt
-else
-    source venv/bin/activate
+    echo "Virtual environment not found. Run ./install.sh first"
+    exit 1
 fi
+
+source venv/bin/activate
 
 # Load environment variables if .env exists
 if [ -f .env ]; then
     export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Check if running in production mode
-if [ "$FLASK_ENV" = "production" ] || [ -n "$PORT" ]; then
-    echo "Starting Flask server in production mode with Gunicorn..."
-    if [ -f "gunicorn_config.py" ]; then
-        gunicorn -c gunicorn_config.py api:app
-    else
-        gunicorn -w 4 -b 0.0.0.0:${PORT:-8080} --timeout 600 api:app
-    fi
-else
-    # Development mode
-    echo "Starting Flask server in development mode on http://127.0.0.1:8080"
-    python api.py
-fi
+echo "🚀 Starting YouTube Downloader API..."
+echo "📍 Server will be available at: http://localhost:${PORT:-8080}"
+echo "🛑 Press Ctrl+C to stop"
+echo ""
+
+python api.py
 
