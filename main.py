@@ -69,14 +69,23 @@ def download_video(url, output_path=None, return_file_path=False):
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
             "noplaylist": True,
-            # Fix YouTube bot detection by using a different player client
+            # Fix YouTube bot detection - try multiple strategies
             "extractor_args": {
                 "youtube": {
                     "player_client": [
+                        "ios",
+                        "android_embedded",  # Android embedded player
                         "android",
                         "web",
-                    ],  # Try android first, fallback to web
+                    ],
                 }
+            },
+            # Add headers to appear more legitimate
+            "http_headers": {
+                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-us,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate",
             },
         }
 
