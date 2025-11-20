@@ -71,17 +71,23 @@ def download_video(url, output_path=None, return_file_path=False):
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
             "noplaylist": True,
-            # Fix YouTube bot detection - use TV client first (most reliable)
+            # Try to bypass bot detection
             "extractor_args": {
                 "youtube": {
                     "player_client": ["tv_embedded", "ios", "android", "web"],
+                    "skip": [
+                        "dash",
+                        "hls",
+                    ],  # Skip adaptive formats that might trigger detection
                 }
             },
-            # Add headers to appear more legitimate
+            # Add more realistic headers
             "http_headers": {
-                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-us,en;q=0.5",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Referer": "https://www.youtube.com/",
             },
             # Retry on errors
             "retries": 3,
