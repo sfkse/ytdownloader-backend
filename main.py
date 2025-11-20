@@ -62,14 +62,15 @@ def download_video(url, output_path=None, return_file_path=False):
 
         # Configure yt-dlp options
         # Use temp file pattern that yt-dlp will fill in
+        # Prioritize quality over format - download best video+audio, then convert to MP4
         ydl_opts = {
-            "format": "best[ext=mp4][protocol!=m3u8]/best[protocol!=m3u8]/best[ext=mp4]/best",
+            "format": "bestvideo+bestaudio/best[protocol!=m3u8]/best[protocol!=m3u8]/best",
             "outtmpl": os.path.join(downloads_path, "%(title)s.%(ext)s"),
             "quiet": False,  # Show progress
             "progress_hooks": [progress_hook],
         }
 
-        # Use ffmpeg for post-processing if available to ensure QuickTime compatibility
+        # Use ffmpeg for post-processing to ensure highest quality and QuickTime compatibility
         if check_ffmpeg():
             ydl_opts["postprocessors"] = [
                 {
@@ -78,7 +79,15 @@ def download_video(url, output_path=None, return_file_path=False):
                 }
             ]
             print(
-                "Note: Using ffmpeg for post-processing to ensure QuickTime compatibility"
+                "Note: Using ffmpeg for post-processing to ensure highest quality and QuickTime compatibility"
+            )
+        else:
+            # Fallback: try to get MP4 directly if ffmpeg is not available
+            ydl_opts["format"] = (
+                "best[ext=mp4][protocol!=m3u8]/best[protocol!=m3u8]/best[ext=mp4]/best"
+            )
+            print(
+                "Warning: ffmpeg not available. Video quality may be limited to available MP4 formats."
             )
 
         # Download the video
